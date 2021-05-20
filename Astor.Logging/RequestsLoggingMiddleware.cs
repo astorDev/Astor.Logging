@@ -37,12 +37,14 @@ namespace Astor.Logging
             
             var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
 
-            this.Logger.LogInformation(@"{uri}
+            this.Logger.LogInformation(@"{method}
+{uri}
 {request}
 {responseCode}
 {responseBody}
 {elapsed},
 {exception}",
+                context.Request.Method,
                 context.Request.GetDisplayUrl(),
                 requestBody,
                 context.Response.StatusCode,
