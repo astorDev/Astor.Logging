@@ -1,6 +1,6 @@
 # Astor.Logging
 
-Home for a minimalistic alternative to `JsonConsole` logger.
+Home for a minimalistic alternative to the `JsonConsole` logger.
 
 ```csharp
 logging.AddMiniJsonConsole();
