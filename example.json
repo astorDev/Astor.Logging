@@ -1,0 +1,8 @@
+{
+    "name": "Egor",
+    "age": 27,
+    "hobby": {
+        "category": "board games",
+        "favorite": "resistance"
+    }
+}
