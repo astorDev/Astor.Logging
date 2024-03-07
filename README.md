@@ -48,5 +48,5 @@ And this is what you get by default with `MiniJsonConsole`
 }
 ```
 
-Note that you can setup `MiniJsonConsole` to include `LogLevel`, `LogEventId` and `LogCategoryName` if you need them.
+Note that you can also set up `MiniJsonConsole` to include `LogLevel`, `LogEventId`, and `LogCategoryName`.
 Check out [MiniJsonConsoleLoggerShould](./Astor.Logging.Tests/MiniJsonConsoleLoggerShould.cs) for more examples.
