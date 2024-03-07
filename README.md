@@ -5,8 +5,8 @@ Home for a minimalistic alternative to the `JsonConsole` logger.
 ```csharp
 logging.AddMiniJsonConsole();
 
-logger.LogWarning("{name} {age} {hobby}", "Egor", 27, new { Category = "board games", Favorite = "resistance"});
-// Output: {"name":"Egor","age":27,"hobby":{"category":"board games","favorite":"resistance"}}
+logger.LogInformation("We have a guest {name} {age}", "Egor", 27);
+// Output: {"name":"Egor","age":27}
 ```
 
 ## Installation
@@ -47,3 +47,6 @@ And this is what you get by default with `MiniJsonConsole`
     }
 }
 ```
+
+Note that you can also set up `MiniJsonConsole` to include `LogLevel`, `LogEventId`, and `LogCategoryName`.
+Check out [MiniJsonConsoleLoggerShould](./Astor.Logging.Tests/MiniJsonConsoleLoggerShould.cs) for more examples.
