@@ -1,19 +1,12 @@
-name: Publish Astor.Logging
 on:
   push:
-    branches:
-      - main
 
 jobs:
   publish:
-    name: build, pack & publish
+    name: Pack & Publish nuget
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: publish on version change
-        id: publish_nuget
-        uses: brandedoutcast/publish-nuget@v2
+      - uses: astorDev/vesy/calver/nuget@main
         with:
-          PROJECT_FILE_PATH: Astor.Logging/Astor.Logging.csproj
-          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+          project: Astor.Logging/Astor.Logging
+          nuget_api_key: ${{ secrets.NUGET_API_KEY }}
