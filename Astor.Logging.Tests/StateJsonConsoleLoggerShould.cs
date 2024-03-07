@@ -6,18 +6,33 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Astor.Logging.Tests;
 
 [TestClass]
-public class StateJsonConsoleLoggerShould
+public class MiniJsonConsoleLoggerShould
 {
     [TestMethod]
-    public void LogOnlyNotNullStateFields()
+    public void LogOnlyNotNullStateFieldsByDefault()
     {
         var logger = new ServiceCollection()
-            .AddLogging(l => l.AddStateJsonConsole(s => s.PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-                .AddFilter((provider, _, logLevel) => 
-                    provider.Contains("StateJsonConsole") && logLevel >= LogLevel.Warning)
+            .AddLogging(l => l
+                .AddMiniJsonConsole()
+                .AddFilter((p, _, lev) => p!.Contains(MiniJsonConsoleLogger.Id) && lev >= LogLevel.Warning)
             )
             .BuildServiceProvider()
-            .GetRequiredService<ILogger<StateJsonConsoleLoggerShould>>();
+            .GetRequiredService<ILogger<MiniJsonConsoleLoggerShould>>();
+
+        logger.LogWarning("{name} {age} {hobby}", "Egor", 27, new { Category = "board games", Favorite = "resistance"});
+        logger.LogInformation("{greeting}, world!", "Hello");
+    }
+    
+    [TestMethod]
+    public void LogEverythingInKebabCaseIfConfiguredToDoSo()
+    {
+        var logger = new ServiceCollection()
+            .AddLogging(l => l
+                .AddMiniJsonConsole(o => o.IncludeAll().SetNamingPolicy(JsonNamingPolicy.KebabCaseLower))
+                .AddFilter((p, _, lev) => p!.Contains(MiniJsonConsoleLogger.Id) && lev >= LogLevel.Warning)
+            )
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<MiniJsonConsoleLoggerShould>>();
 
         logger.LogWarning("{name} {age} {hobby}", "Egor", 27, new { Category = "board games", Favorite = "resistance"});
         logger.LogInformation("{greeting}, world!", "Hello");
