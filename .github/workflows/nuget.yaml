@@ -6,7 +6,7 @@ jobs:
     name: Pack & Publish nuget
     runs-on: ubuntu-latest
     steps:
-      - uses: astorDev/vesy/calver/nuget@main
+      - uses: astorDev/versy/calver/nuget@main
         with:
           project: Astor.Logging/Astor.Logging
           nuget_api_key: ${{ secrets.NUGET_API_KEY }}
