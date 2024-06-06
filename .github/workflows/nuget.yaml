@@ -1,7 +1,7 @@
 on:
   push:
     paths:
-      - 'dotnet/Astor.Logging/**'
+      - 'Astor.Logging/**'
       - '.github/workflows/nuget.yaml'
   workflow_dispatch:
     
