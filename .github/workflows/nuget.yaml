@@ -13,4 +13,4 @@ jobs:
       - uses: astorDev/versy/calver/nuget@main
         with:
           project: Astor.Logging/Astor.Logging
-          nuget_api_key: ${{ secrets.NUGET_API_KEY }}
+          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
