@@ -26,7 +26,8 @@ public class SafeJsonSerializer(JsonNamingPolicy namingPolicy, bool indented)
     {
         NullValueHandling = NullValueHandling.Ignore,
         ContractResolver = namingPolicy == JsonNamingPolicy.CamelCase ? new CamelCasePropertyNamesContractResolver() : new DefaultContractResolver(),
-        Formatting = indented ? Formatting.Indented : Formatting.None 
+        Formatting = indented ? Formatting.Indented : Formatting.None,
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
     };
 
     public string Serialize(object source)
