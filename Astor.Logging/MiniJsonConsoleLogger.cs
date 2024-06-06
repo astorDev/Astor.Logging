@@ -50,6 +50,7 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
         
         Console.WriteLine(JsonSerializer.Serialize(props, new JsonSerializerOptions
         {
+            WriteIndented = options.Indented,
             DictionaryKeyPolicy = options.NamingPolicy,
             PropertyNamingPolicy = options.NamingPolicy // in case of inner objects
         }));
@@ -59,8 +60,15 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
 
     public class OptionsBuilder
     {
+        bool indented = false;
         JsonNamingPolicy namingPolicy = JsonNamingPolicy.CamelCase;
         LogParts includes = LogParts.State;
+
+        public OptionsBuilder Indent()
+        {
+            indented = true;
+            return this;
+        }
 
         public OptionsBuilder SetNamingPolicy(JsonNamingPolicy namingPolicy)
         {
@@ -74,10 +82,10 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
             return this;
         }
 
-        public Options Build(string categoryName) => new(categoryName, includes, namingPolicy);
+        public Options Build(string categoryName) => new(categoryName, includes, namingPolicy, indented);
     }
     
-    public record Options(string CategoryName, LogParts Includes, JsonNamingPolicy NamingPolicy);
+    public record Options(string CategoryName, LogParts Includes, JsonNamingPolicy NamingPolicy, bool Indented = false);
     
     [ProviderAlias(Id)]
     public class Provider(OptionsBuilder optionsBuilder) : ILoggerProvider {

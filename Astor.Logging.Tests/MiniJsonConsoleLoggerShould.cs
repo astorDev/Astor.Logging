@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -37,4 +38,24 @@ public class MiniJsonConsoleLoggerShould
         logger.LogWarning("{name} {age} {hobby}", "Egor", 27, new { Category = "board games", Favorite = "resistance"});
         logger.LogInformation("{greeting}, world!", "Hello");
     }
+
+    [TestMethod]
+    public void LogANestedObjectFromTypelessDeserialization()
+    {
+        var logger = new ServiceCollection()
+            .AddLogging(l => l
+                .AddMiniJsonConsole(j => j.Indent())
+            )
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<MiniJsonConsoleLoggerShould>>();
+
+        var method = "POST";
+        var user = new User(Guid.NewGuid().ToString(), "Andrew");
+        var userJson = JsonSerializer.Serialize(user);
+        var userX = JsonSerializer.Deserialize<object>(userJson);
+        
+        logger.LogInformation("Sending {method} with {requestBody}", method, userX);
+    }
 }
+
+public record User(string Id, string Name);
