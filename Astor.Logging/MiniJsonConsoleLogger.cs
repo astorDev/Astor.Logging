@@ -47,13 +47,9 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
         {
             props.TryAdd(nameof(LogParts.LogEventId), logLevel);
         }
-        
-        Console.WriteLine(JsonSerializer.Serialize(props, new JsonSerializerOptions
-        {
-            WriteIndented = options.Indented,
-            DictionaryKeyPolicy = options.NamingPolicy,
-            PropertyNamingPolicy = options.NamingPolicy // in case of inner objects
-        }));
+
+        var json = options.Serializer.Serialize(props);
+        Console.WriteLine(json);
     }
 
     public class Disposable : IDisposable { public void Dispose() => GC.SuppressFinalize(this); }
@@ -82,10 +78,10 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
             return this;
         }
 
-        public Options Build(string categoryName) => new(categoryName, includes, namingPolicy, indented);
+        public Options Build(string categoryName) => new(categoryName, includes, new(namingPolicy, indented));
     }
     
-    public record Options(string CategoryName, LogParts Includes, JsonNamingPolicy NamingPolicy, bool Indented = false);
+    public record Options(string CategoryName, LogParts Includes, SafeJsonSerializer Serializer);
     
     [ProviderAlias(Id)]
     public class Provider(OptionsBuilder optionsBuilder) : ILoggerProvider {

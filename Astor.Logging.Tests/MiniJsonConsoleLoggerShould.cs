@@ -56,6 +56,60 @@ public class MiniJsonConsoleLoggerShould
         
         logger.LogInformation("Sending {method} with {requestBody}", method, userX);
     }
+
+    [TestMethod]
+    public void LogException()
+    {
+        var logger = new ServiceCollection()
+            .AddLogging(l => l
+                .AddMiniJsonConsole(j => j.Indent())
+            )
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<MiniJsonConsoleLoggerShould>>();
+
+
+        Exception ex;
+
+        try
+        {
+            throw new InvalidOperationException("Expected");
+        }
+        catch (Exception exc)
+        {
+            ex = exc;
+        }
+        
+        logger.LogInformation("At {time} occurred {exception}", DateTime.Now, ex);
+    }
+
+    [TestMethod]
+    public void LogWithDynamicAndException()
+    {
+        var logger = new ServiceCollection()
+            .AddLogging(l => l
+                .AddMiniJsonConsole(j => j.Indent())
+            )
+            .BuildServiceProvider()
+            .GetRequiredService<ILogger<MiniJsonConsoleLoggerShould>>();
+        
+        var method = "POST";
+        var user = new User(Guid.NewGuid().ToString(), "Andrew");
+        var userJson = JsonSerializer.Serialize(user);
+        var userX = JsonSerializer.Deserialize<object>(userJson);
+        
+        Exception ex;
+
+        try
+        {
+            throw new InvalidOperationException("Expected");
+        }
+        catch (Exception exc)
+        {
+            ex = exc;
+        }
+        
+        logger.LogInformation("On {method} {user} occurred {exception}", method, user, ex);
+    }
 }
 
 public record User(string Id, string Name);
