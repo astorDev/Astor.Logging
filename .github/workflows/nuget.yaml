@@ -1,6 +1,10 @@
 on:
   push:
-
+    paths:
+      - 'dotnet/Astor.Logging/**'
+      - '.github/workflows/nuget.yaml'
+  workflow_dispatch:
+    
 jobs:
   publish:
     name: Pack & Publish nuget
