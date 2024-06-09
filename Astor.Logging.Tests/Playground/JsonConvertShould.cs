@@ -11,8 +11,7 @@ public class JsonConvertShould
     [TestMethod]
     public void SerializeExceptions()
     {
-        var json = JsonConvert.SerializeObject(ExceptionGenerator.Generate());
-        Console.WriteLine(json);
+        JsonConvert.SerializeObject(ExceptionGenerator.Generate()).Printed();
     }
 
     [TestMethod]
@@ -28,7 +27,6 @@ public class JsonConvertShould
             { "hobbyNewtonsoft", hobbyDeserializedWithConvert }
         };
 
-        var json = JsonConvert.SerializeObject(toSerialize, Formatting.Indented);
-        Console.WriteLine(json);
+        JsonConvert.SerializeObject(toSerialize, Formatting.Indented).Printed();
     }
 }
