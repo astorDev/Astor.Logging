@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,16 +6,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Astor.Logging.Tests;
 
 [TestClass]
-public class MiniJsonConsoleLoggerShould
+public class MicrosoftJsonConsoleLoggerShould
 {
-    public ILogger BuildSimpleIndentedLogger()
-    {
-        return new ServiceCollection()
-            .AddLogging(l => l.AddMiniJsonConsole(c => c.Indent()))
-            .BuildServiceProvider()
-            .GetRequiredService<ILogger<object>>();
-    }
-    
     [TestMethod]
     public void LogSimple()
     {
@@ -42,25 +33,12 @@ public class MiniJsonConsoleLoggerShould
         
         logger.LogError(ExceptionGenerator.Generate(), "fail of {Name} {Hobby}", "Egor", hobby);
     }
-
-    [TestMethod]
-    public void LogAllFieldsInCombinedScenario()
+    
+    public ILogger BuildSimpleIndentedLogger()
     {
-        var logger = new ServiceCollection()
-            .AddLogging(l => l.AddMiniJsonConsole(c => c.Indent().IncludeAll()))
+        return new ServiceCollection()
+            .AddLogging(l => l.AddJsonConsole(j => j.JsonWriterOptions = new() { Indented = true }))
             .BuildServiceProvider()
             .GetRequiredService<ILogger<object>>();
-        
-        logger.LogError(ExceptionGenerator.Generate(),"fail of {Name} {Hobby}", "Egor", new { Name = "Board Games", Favorite = "Resistance" });
-    }
-
-    [TestMethod]
-    public void LogRecord()
-    {
-        var logger = this.BuildSimpleIndentedLogger();
-        
-        logger.LogInformation("{Name} {Hobby}", "Egor", Hobby.Example1);
     }
 }
-
-public record User(string Id, string Name);

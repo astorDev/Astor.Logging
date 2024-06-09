@@ -11,7 +11,7 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
 {
     public const string Id = "MiniJsonConsole";
     
-    public IDisposable BeginScope<TState>(TState state) => new Disposable();
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull => new Disposable();
     public bool IsEnabled(LogLevel logLevel) => true;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception, string> formatter)
@@ -40,12 +40,22 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
 
         if (options.Includes.HasFlag(LogParts.LogLevel))
         {
-            props.TryAdd(nameof(LogParts.LogLevel), logLevel);
+            props.TryAdd(nameof(LogParts.LogLevel), logLevel.ToString());
         }
 
         if (options.Includes.HasFlag(LogParts.LogEventId))
         {
             props.TryAdd(nameof(LogParts.LogEventId), logLevel);
+        }
+
+        if (exception != null && options.Includes.HasFlag(LogParts.LogException))
+        {
+            props.TryAdd(nameof(LogParts.LogException), exception);
+        }
+
+        if (options.Includes.HasFlag(LogParts.LogMessage))
+        {
+            props.TryAdd(nameof(LogParts.LogMessage), state.ToString()!);
         }
 
         var json = options.Serializer.Serialize(props);
@@ -58,7 +68,7 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
     {
         bool indented = false;
         JsonNamingPolicy namingPolicy = JsonNamingPolicy.CamelCase;
-        LogParts includes = LogParts.State;
+        LogParts includes = LogParts.State | LogParts.LogException;
 
         public OptionsBuilder Indent()
         {
@@ -74,14 +84,26 @@ public class MiniJsonConsoleLogger(MiniJsonConsoleLogger.Options options) : ILog
         
         public OptionsBuilder IncludeAll()
         {
-            includes = LogParts.State | LogParts.LogOriginalFormat | LogParts.LogCategoryName | LogParts.LogLevel | LogParts.LogEventId;
+            includes =
+                LogParts.State 
+                | LogParts.LogOriginalFormat 
+                | LogParts.LogCategoryName 
+                | LogParts.LogLevel 
+                | LogParts.LogEventId 
+                | LogParts.LogException 
+                | LogParts.LogMessage;
+            
             return this;
         }
 
-        public Options Build(string categoryName) => new(categoryName, includes, new(namingPolicy, indented));
+        public Options Build(string categoryName) => new(categoryName, includes, new(new ()
+        {
+           Indented = indented,
+           NamingPolicy = namingPolicy
+        }));
     }
     
-    public record Options(string CategoryName, LogParts Includes, SafeJsonSerializer Serializer);
+    public record Options(string CategoryName, LogParts Includes, SafeDictionaryJson Serializer);
     
     [ProviderAlias(Id)]
     public class Provider(OptionsBuilder optionsBuilder) : ILoggerProvider {
@@ -102,7 +124,9 @@ public enum LogParts
     LogOriginalFormat = 2,
     LogCategoryName = 4,
     LogLevel = 8,
-    LogEventId = 16
+    LogEventId = 16,
+    LogException = 32,
+    LogMessage = 64,
 }
 
 
