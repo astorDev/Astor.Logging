@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
 namespace Astor.Logging.Tests;
