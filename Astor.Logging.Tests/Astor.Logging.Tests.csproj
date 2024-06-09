@@ -24,5 +24,12 @@
     <ItemGroup>
       <ProjectReference Include="..\Astor.Logging\Astor.Logging.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <Using Include="System.Text.Json" />
+        <Using Include="Microsoft.Extensions.DependencyInjection" />
+        <Using Include="Microsoft.Extensions.Logging" />
+        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+    </ItemGroup>
 
 </Project>
