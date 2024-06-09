@@ -206,7 +206,7 @@ And update your code to
 logging.AddMiniJsonConsole();
 ```
 
-> If you need a log metadata, you can include whatever combination of fields you feel useful.
+> If you need log metadata, you can include whatever combination of fields you feel useful.
 
 ...
 
