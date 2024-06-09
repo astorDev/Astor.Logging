@@ -11,41 +11,15 @@ public class JsonConvertShould
     [TestMethod]
     public void SerializeExceptions()
     {
-        Exception ex;
-        
-        try
-        {
-            throw new NotImplementedException();
-        }
-        catch (Exception e)
-        {
-            ex = e;
-        }
-
-        try
-        {
-            var json = JsonConvert.SerializeObject(ex);
-            Console.WriteLine(json);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+        var json = JsonConvert.SerializeObject(ExceptionGenerator.Generate());
+        Console.WriteLine(json);
     }
 
     [TestMethod]
     public void SerializeObjectWithDeserializedObject()
     {
-        var hobbyJson = """
-                        {
-                            "name" : "Board Games",
-                            "favorite" : "Resistance"
-                        }
-                        """;
-
-        var hobbyDeserializedWithSystem = System.Text.Json.JsonSerializer.Deserialize<object>(hobbyJson)!;
-        var hobbyDeserializedWithConvert = JsonConvert.DeserializeObject(hobbyJson)!;
+        var hobbyDeserializedWithSystem = System.Text.Json.JsonSerializer.Deserialize<object>(Hobby.Json)!;
+        var hobbyDeserializedWithConvert = JsonConvert.DeserializeObject(Hobby.Json)!;
 
         var toSerialize = new Dictionary<string, object>()
         {

@@ -11,20 +11,9 @@ public class JsonSerializerShould
     [ExpectedException(typeof(NotSupportedException))]
     public void ThrowOnExceptionSerialization()
     {
-        Exception ex;
-        
         try
         {
-            throw new NotImplementedException();
-        }
-        catch (Exception e)
-        {
-            ex = e;
-        }
-
-        try
-        {
-            JsonSerializer.Serialize(ex);
+            JsonSerializer.Serialize(ExceptionGenerator.Generate());
         }
         catch (Exception e)
         {
