@@ -17,7 +17,7 @@ The logging functionality is not specific to `ASP .NET Core` and works the same 
 dotnet new console
 ```
 
-However, unlike with `ASP .NET Core`, console apps don't include the functionality out of the box. So we'll need to install a separate nuget package:
+However, unlike with `ASP .NET Core`, console apps don't include functionality out of the box. So we'll need to install a separate nuget package:
 
 ```shell
 dotnet add package Microsoft.Extensions.Logging.Console
@@ -25,7 +25,7 @@ dotnet add package Microsoft.Extensions.Logging.Console
 
 Spinning up a logger is a surprisingly twisted process in .NET. In fact, it's twisted so much, that the most simple way to do it is by elaborating `Microsoft.Extensions.DependencyInjection`. Here's what the most basic code looks like:
 
-> Console log provider seems to ship with some sort of delay, so for logs to actually appear we will wait for 100 milliseconds before exiting.
+> The console log provider seems to ship with some sort of delay, so for logs to actually appear we will wait for 100 milliseconds before exiting.
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -42,7 +42,7 @@ await Task.Delay(100); // Wait for logs to be written
 
 If we `dotnet run` the code we'll get the following JSON
 
-> This log is formatted for readability. Actual JSON log will be written in the single line. However, you can get the JSON formatted by changing code to following: `l.AddJsonConsole(c => c.JsonWriterOptions = new () { Indented = true })`
+> This log is formatted for readability. The actual JSON log will be written in a single line. However, you can get the JSON formatted by changing the code to the following: `l.AddJsonConsole(c => c.JsonWriterOptions = new () { Indented = true })`
 
 ```json
 {
@@ -69,7 +69,7 @@ var egor = new Person("Egor", 28);
 record Person(string Name, int Age);
 ```
 
-And to make things even more interesting let's say we have some information that initially came to us as JSON e.g. as request body and we don't know a type of it. Fortunatelly, `JsonSerializer` supports deserializing this json as object, which will actually be a `JsonElement`. Here's how we will immitate that:
+And to make things even more interesting let's say we have some information that initially came to us as JSON e.g. as a request body and we don't know a type of it. Fortunately, `JsonSerializer` supports deserializing this json as an object, which will actually be a `JsonElement`. Here's how we will imitate that:
 
 ```csharp
 var hobby = JsonSerializer.Deserialize<object>("{\"Name\":\"Board Games\"}");
@@ -98,8 +98,7 @@ This is the log we'll get now:
 }
 ```
 
-The peculiar thing about this is that we are **not** getting any nested JSON object. Moreover we got different representations of `Person` and `hobby`. But if we would run `JsonSerializer.Serialize` on those object we will in fact get them as a nested objects. So, what's going on here? To figure this out, let's study the code of the
- [`JsonConsoleFormatter.cs`](https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Logging.Console/src/JsonConsoleFormatter.cs). Here's the important part:
+The peculiar thing about this is that we are **not** getting any nested JSON objects. Moreover, we got different representations of `Person` and `hobby`. But if we run `JsonSerializer.Serialize` on those objects we will in fact get them as nested objects. So, what's going on here? To figure this out, let's study the code of the [`JsonConsoleFormatter.cs`](https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Logging.Console/src/JsonConsoleFormatter.cs). Here's the important part:
 
 ```csharp
 private static void WriteItem(Utf8JsonWriter writer, KeyValuePair<string, object> item)
@@ -135,11 +134,11 @@ private static string ToInvariantString(object obj)
 }
 ```
 
-What this essentially means is that if we don't recognize an item as a primitive type we will just run a `ToString()` on it and return the received value, not allowing a complex analysis on a nested data.
+What this essentially means is that if we don't recognize an item as a primitive type we will just run a `ToString()` on it and return the received value, not allowing a complex analysis on nested data.
 
 ## Can we do better?
 
-Fortunatelly, there's another nuget called `Astor.Logging` providing us with another version of JSON Console logging out. Let's check it out!
+Fortunately, there's another nuget called `Astor.Logging` providing us with another version of JSON Console logging out. Let's check it out!
 
 ```shell
 dotnet add package Astor.Logging
@@ -167,7 +166,7 @@ And here's what we get with that package right away:
 }
 ```
 
-So now, we don't just get the nested objects. We also made our significantly more minimalistic, hence the `Mini` in the name. But what if we need some metadata? Let's use `IncludeAll` in the logger configuration. Also, notice that the logger using a camel case by default. This can also be configured with `SetNamingPolicy`. Let's use `JsonNamingPolicy.KebabCaseLower` just for fun. And finally let's `Indent` this thing. So here's the code we got:
+So now, we don't just get the nested objects. We also made our significantly more minimalistic, hence the `Mini` in the name. But what if we need some metadata? Let's use `IncludeAll` in the logger configuration. Also, notice that the logger using a camel case by default. This can also be configured with `SetNamingPolicy`. Let's use `JsonNamingPolicy.KebabCaseLower` just for fun. And finally, let's `Indent` this thing. So here's the code we got:
 
 ```csharp
     .AddLogging(l => l.AddMiniJsonConsole(j => 
