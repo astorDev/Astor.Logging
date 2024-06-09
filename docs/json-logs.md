@@ -11,13 +11,13 @@ How do you get the most out of your logs? Using structured logs shipped to an ob
 
 # The Basics
 
-The logging functionality is not specific to `ASP .NET Core` and works the same for any .NET project type. So let's spin up the most basic project type by running:
+The logging functionality is not specific to `ASP .NET Core` and works the same for any .NET project type. So let's spin up the most basic one by running:
 
 ```shell
 dotnet new console
 ```
 
-However, unlike with `ASP .NET Core`, console apps don't include functionality out of the box. So we'll need to install a separate nuget package:
+However, unlike with `ASP .NET Core`, console apps don't include this functionality out of the box. So we'll need to install a separate nuget package:
 
 ```shell
 dotnet add package Microsoft.Extensions.Logging.Console
