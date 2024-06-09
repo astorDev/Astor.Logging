@@ -9,48 +9,96 @@ How do you get the most out of your logs? Using structured logs shipped to an ob
 
 ![Our AI beaver with logs!](json-logs-thumb.png)
 
-# Simple
+## The Basics
+
+The logging functionality is not specific to `ASP .NET Core` and works the same for any .NET project type. So let's spin up the most basic one by running:
+
+```shell
+dotnet new console
+```
+
+However, unlike with `ASP .NET Core`, console apps don't include this functionality out of the box. So we'll need to install a separate nuget package:
+
+```shell
+dotnet add package Microsoft.Extensions.Logging.Console
+```
+
+Spinning up a logger is a surprisingly twisted process in .NET. In fact, it's twisted so much, that the most simple way to do it is by elaborating `Microsoft.Extensions.DependencyInjection`. Here's what the most basic code looks like:
+
+> The console log provider seems to ship with some sort of delay, so for logs to actually appear we will wait for 100 milliseconds before exiting.
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+var logger = new ServiceCollection()
+    .AddLogging(l => l.AddJsonConsole())
+    .BuildServiceProvider()
+    .GetRequiredService<ILogger<Program>>();
+
+logger.LogInformation("{Name} {Age}", "Egor", 27);
+await Task.Delay(100); // Wait for logs to be written
+```
+
+If we `dotnet run` the code we'll get the following JSON
+
+> This log is formatted for readability. The actual JSON log will be written in a single line. However, you can get the JSON formatted by changing the code to the following: `l.AddJsonConsole(c => c.JsonWriterOptions = new () { Indented = true })`
 
 ```json
 {
-  "EventId": 0,
-  "LogLevel": "Information",
-  "Category": "object",
-  "Message": "Egor 27",
-  "State": {
+    "EventId": 0,
+    "LogLevel": "Information",
+    "Category": "object",
     "Message": "Egor 27",
-    "Name": "Egor",
-    "Age": 27,
-    "{OriginalFormat}": "{Name} {Age}"
-  }
+    "State": {
+        "Message": "Egor 27",
+        "Name": "Egor",
+        "Age": 27,
+        "{OriginalFormat}": "{Name} {Age}"
+    }
 }
 ```
+
+## Nested Objects
+
+Now let's spice things up a little bit! What if don't just log primitives, but some objects? Let's create one:
+
+
+```csharp
+var egor = new Person("Egor", 28);
+record Person(string Name, int Age);
+```
+
+And to make things even more interesting let's say we have some information that initially came to us as JSON e.g. as a request body and we don't know a type of it. Fortunately, `JsonSerializer` supports deserializing this json as an object, which will actually be a `JsonElement`. Here's how we will imitate that:
+
+```csharp
+var hobby = JsonSerializer.Deserialize<object>("{\"Name\":\"Board Games\"}");
+```
+
+Logger is happy to accept any object as a parameter, so let's submit our information for it to log:
+
+```cs
+logger.LogInformation("{Person} {Hobby}", egor, hobby);
+```
+
+This is the log we'll get now:
 
 ```json
 {
-  "name": "Egor",
-  "age": 27
+    "EventId": 0,
+    "LogLevel": "Information",
+    "Category": "Program",
+    "Message": "Person { Name = Egor, Age = 28 } {\u0022Name\u0022:\u0022Board Games\u0022}",
+    "State": {
+        "Message": "Person { Name = Egor, Age = 28 } {\u0022Name\u0022:\u0022Board Games\u0022}",
+        "Person": "Person { Name = Egor, Age = 28 }",
+        "Hobby": "{\u0022Name\u0022:\u0022Board Games\u0022}",
+        "{OriginalFormat}": "{Person} {Hobby}"
+    }
 }
 ```
 
-# Inner
-
-```json
-{
-  "EventId": 0,
-  "LogLevel": "Information",
-  "Category": "object",
-  "Message": "Egor { Name = Board Games, Favorite = Resistance }",
-  "State": {
-    "Message": "Egor { Name = Board Games, Favorite = Resistance }",
-    "Name": "Egor",
-    "Hobby": "{ Name = Board Games, Favorite = Resistance }",
-    "{OriginalFormat}": "{Name} {Hobby}"
-  }
-}
-```
-
-[`JsonConsoleFormatter.cs`](https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Logging.Console/src/JsonConsoleFormatter.cs)
+The peculiar thing about this is that we are **not** getting any nested JSON objects. Moreover, we got different representations of `Person` and `hobby`. But if we run `JsonSerializer.Serialize` on those objects we will in fact get them as nested objects. So, what's going on here? To figure this out, let's study the code of the [`JsonConsoleFormatter.cs`](https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Logging.Console/src/JsonConsoleFormatter.cs). Here's the important part:
 
 ```csharp
 private static void WriteItem(Utf8JsonWriter writer, KeyValuePair<string, object> item)
@@ -64,33 +112,7 @@ private static void WriteItem(Utf8JsonWriter writer, KeyValuePair<string, object
     case byte num1:
       writer.WriteNumber(key, (int) num1);
       break;
-    case sbyte num2:
-      writer.WriteNumber(key, (int) num2);
-      break;
-    case char reference:
-      writer.WriteString(key, (ReadOnlySpan<char>) MemoryMarshal.CreateSpan<char>(ref reference, 1));
-      break;
-    case Decimal num3:
-      writer.WriteNumber(key, num3);
-      break;
-    case double num4:
-      writer.WriteNumber(key, num4);
-      break;
-    case float num5:
-      writer.WriteNumber(key, num5);
-      break;
-    case int num6:
-      writer.WriteNumber(key, num6);
-      break;
-    case uint num7:
-      writer.WriteNumber(key, num7);
-      break;
-    case long num8:
-      writer.WriteNumber(key, num8);
-      break;
-    case ulong num9:
-      writer.WriteNumber(key, num9);
-      break;
+    // 9 different num cases omitted for brievity
     case short num10:
       writer.WriteNumber(key, (int) num10);
       break;
@@ -112,51 +134,58 @@ private static string ToInvariantString(object obj)
 }
 ```
 
+What this essentially means is that if we don't recognize an item as a primitive type we will just run a `ToString()` on it and return the received value, not allowing a complex analysis on nested data.
+
+## Can we do better?
+
+Fortunately, there's another nuget called `Astor.Logging` providing us with another version of JSON Console logging. Let's check it out!
+
+```shell
+dotnet add package Astor.Logging
+```
+
+The package is fully compatible with Microsoft's dependency injection system, so the only line we will need to change is this:
+
+```csharp
+.AddLogging(l => l.AddMiniJsonConsole())
+```
+
+> Plus, add `using Astor.Logging`, of course.
+
+And here's the log we get with that package right away:
 
 ```json
 {
-  "name": "Egor",
-  "hobby": {"name":"Board Games","favorite":"Resistance"}
+    "person": {
+        "name": "Egor",
+        "age": 28
+    },
+    "hobby": {
+        "Name": "Board Games"
+    }
 }
 ```
 
-# Exception
+So now, we don't just get the nested objects. We also made our logs significantly more minimalistic, hence the `Mini` in the name. But what if we need some metadata? Let's use `IncludeAll` in the logger configuration. Also, notice that the logger using a camel case by default. This can also be configured with `SetNamingPolicy`. Let's use `JsonNamingPolicy.KebabCaseLower` just for fun. And finally, let's `Indent` this thing. So here's the code we got:
 
-```json
-{
-  "EventId": 0,
-  "LogLevel": "Error",
-  "Category": "object",
-  "Message": "fail of Egor {\n \u0022Name\u0022 : \u0022Games\u0022,\n \u0022fav\u0022 : \u0022Ticket to ride\u0022\n}",
-  "Exception": "System.InvalidOperationException: Expected Exception number ed8bc236-a646-48be-b20c-fb8541aeb0d5. \n   at Astor.Logging.Tests.ExceptionGenerator.Generate() in /Users/egortarasov/repos/Astor.Logging/Astor.Logging.Tests/ExceptionGenerator.cs:line 12",
-  "State": {
-    "Message": "fail of Egor {\n \u0022Name\u0022 : \u0022Games\u0022,\n \u0022fav\u0022 : \u0022Ticket to ride\u0022\n}",
-    "Name": "Egor",
-    "Hobby": "{\n \u0022Name\u0022 : \u0022Games\u0022,\n \u0022fav\u0022 : \u0022Ticket to ride\u0022\n}",
-    "{OriginalFormat}": "fail of {Name} {Hobby}"
-  }
-}
+```csharp
+    .AddLogging(l => l.AddMiniJsonConsole(j => 
+        j.IncludeAll().Indent().SetNamingPolicy(JsonNamingPolicy.KebabCaseLower)))
 ```
 
-```json
-{
-  "name": "Egor",
-  "hobby": {"Name":"Games","fav":"Ticket to ride"},
-  "logException": "System.InvalidOperationException: Expected Exception number 7ec23676-a9cf-4df2-93c0-133f1cb7224e. \n   at Astor.Logging.Tests.ExceptionGenerator.Generate() in /Users/egortarasov/repos/Astor.Logging/Astor.Logging.Tests/ExceptionGenerator.cs:line 12"
-}
-```
+And here's the log:
 
+> Note that for `hobby` initial json casing is preserved.
 
 ```json
 {
-  "name": "Egor",
-  "hobby": {"name":"Board Games","favorite":"Resistance"},
-  "logOriginalFormat": "fail of {Name} {Hobby}",
-  "logCategoryName": "object",
-  "logLevel": "Error",
-  "logEventId": 4,
-  "logException": "System.InvalidOperationException: Expected Exception number c313c8f6-c732-4805-9207-b2b937151a9c. \n   at Astor.Logging.Tests.ExceptionGenerator.Generate() in /Users/egortarasov/repos/Astor.Logging/Astor.Logging.Tests/ExceptionGenerator.cs:line 12",
-  "logMessage": "fail of Egor { Name = Board Games, Favorite = Resistance }"
+  "person": {"name":"Egor","age":28},
+  "hobby": {"Name":"Board Games"},
+  "log-original-format": "{Person} {Hobby}",
+  "log-category-name": "Program",
+  "log-level": "Information",
+  "log-event-id": 2,
+  "log-message": "Person { Name = Egor, Age = 28 } {\u0022Name\u0022:\u0022Board Games\u0022}"
 }
 ```
 
@@ -185,7 +214,7 @@ However, you'll get a log overstuffed with metadata and with no nesting capabili
 }
 ```
 
-But to get a minimalistic log with inner objects where you need them:
+But to get a minimalistic log with inner objects where you need them, like:
 
 ```json
 {
@@ -205,8 +234,6 @@ And update your code to
 ```csharp
 logging.AddMiniJsonConsole();
 ```
-
-> If you need log metadata, you can include whatever combination of fields you feel useful.
 
 ...
 

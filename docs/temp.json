@@ -1,0 +1,9 @@
+{
+    "person": {
+        "name": "Egor",
+        "age": 28
+    },
+    "hobby": {
+        "Name": "Board Games"
+    }
+}
