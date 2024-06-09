@@ -9,7 +9,7 @@ How do you get the most out of your logs? Using structured logs shipped to an ob
 
 ![Our AI beaver with logs!](json-logs-thumb.png)
 
-# The Basics
+## The Basics
 
 The logging functionality is not specific to `ASP .NET Core` and works the same for any .NET project type. So let's spin up the most basic one by running:
 
@@ -59,7 +59,7 @@ If we `dotnet run` the code we'll get the following JSON
 }
 ```
 
-# Nested Objects
+## Nested Objects
 
 Now let's spice things up a little bit! What if don't just log primitives, but some objects? Let's create one:
 
@@ -138,7 +138,7 @@ What this essentially means is that if we don't recognize an item as a primitive
 
 ## Can we do better?
 
-Fortunately, there's another nuget called `Astor.Logging` providing us with another version of JSON Console logging out. Let's check it out!
+Fortunately, there's another nuget called `Astor.Logging` providing us with another version of JSON Console logging. Let's check it out!
 
 ```shell
 dotnet add package Astor.Logging
@@ -152,7 +152,7 @@ The package is fully compatible with Microsoft's dependency injection system, so
 
 > Plus, add `using Astor.Logging`, of course.
 
-And here's what we get with that package right away:
+And here's the log we get with that package right away:
 
 ```json
 {
@@ -166,7 +166,7 @@ And here's what we get with that package right away:
 }
 ```
 
-So now, we don't just get the nested objects. We also made our significantly more minimalistic, hence the `Mini` in the name. But what if we need some metadata? Let's use `IncludeAll` in the logger configuration. Also, notice that the logger using a camel case by default. This can also be configured with `SetNamingPolicy`. Let's use `JsonNamingPolicy.KebabCaseLower` just for fun. And finally, let's `Indent` this thing. So here's the code we got:
+So now, we don't just get the nested objects. We also made our logs significantly more minimalistic, hence the `Mini` in the name. But what if we need some metadata? Let's use `IncludeAll` in the logger configuration. Also, notice that the logger using a camel case by default. This can also be configured with `SetNamingPolicy`. Let's use `JsonNamingPolicy.KebabCaseLower` just for fun. And finally, let's `Indent` this thing. So here's the code we got:
 
 ```csharp
     .AddLogging(l => l.AddMiniJsonConsole(j => 
