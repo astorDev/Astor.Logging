@@ -6,7 +6,6 @@ public class ExceptionGenerator
 {
     public static Exception Generate()
     {
-        
         try
         {
             throw new InvalidOperationException($"Expected Exception number {Guid.NewGuid()}. ");
