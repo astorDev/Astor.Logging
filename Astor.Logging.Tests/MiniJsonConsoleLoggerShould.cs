@@ -1,27 +1,18 @@
-using System;
-using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Astor.Logging.Tests;
 
 [TestClass]
 public class MiniJsonConsoleLoggerShould
 {
-    public ILogger BuildSimpleIndentedLogger()
-    {
-        return new ServiceCollection()
+    public ILogger BuildSimpleIndentedLogger() =>
+        new ServiceCollection()
             .AddLogging(l => l.AddMiniJsonConsole(c => c.Indent()))
             .BuildServiceProvider()
             .GetRequiredService<ILogger<object>>();
-    }
-    
+
     [TestMethod]
     public void LogSimple()
     {
         var logger = this.BuildSimpleIndentedLogger();
-        
         logger.LogInformation("{Name} {Age}", "Egor", 27);
     }
 
@@ -29,7 +20,6 @@ public class MiniJsonConsoleLoggerShould
     public void LogInnerAnonymous()
     {
         var logger = this.BuildSimpleIndentedLogger();
-        
         logger.LogInformation("{Name} {Hobby}", "Egor", new { Name = "Board Games", Favorite = "Resistance" });
     }
 
@@ -62,5 +52,3 @@ public class MiniJsonConsoleLoggerShould
         logger.LogInformation("{Name} {Hobby}", "Egor", Hobby.Example1);
     }
 }
-
-public record User(string Id, string Name);

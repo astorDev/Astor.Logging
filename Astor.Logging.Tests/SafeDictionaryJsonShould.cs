@@ -1,5 +1,4 @@
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -8,56 +7,37 @@ namespace Astor.Logging.Tests;
 [TestClass]
 public class SafeDictionaryJsonShould
 {
-    string hobbyJson = """
-                       {
-                        "Name" : "Games",
-                        "fav" : "Ticket to ride"
-                       }
-                       """;
-    
+    readonly SafeDictionaryJson StandardSerializer = new(new() { Indented = true });
     
     [TestMethod]
     public void SerializeException()
     {
-        var serializer = new SafeDictionaryJson(new() { Indented = true });
-
-        var json = serializer.Serialize(new()
+        StandardSerializer.Serialize(new()
         {
             { "Exception", ExceptionGenerator.Generate() },
             { "Name", "Egor" },
-        });
-
-        Console.WriteLine(json);
-
+        }).Printed();
     }
 
     [TestMethod]
     public void SerializeAnonymous()
     {
-        var serializer = new SafeDictionaryJson(new() { Indented = true });
-        
-        var json = serializer.Serialize(new()
+        StandardSerializer.Serialize(new()
         {
             { "Name", "Egor" },
             { "hobbyAnonymous", Hobby.Anonymous }
-        });
-        
-        Console.WriteLine(json);
+        }).Printed();
     }
 
     [TestMethod]
     public void SerializeDeserializedWithSystem()
     {
-        var serializer = new SafeDictionaryJson(new() { Indented = true });
-        var hobbySystemDeserialized = JsonSerializer.Deserialize<object>(hobbyJson);
-        
-        var json = serializer.Serialize(new()
+        var hobbySystemDeserialized = JsonSerializer.Deserialize<object>(Hobby.Json);
+        StandardSerializer.Serialize(new()
         {
             { "Name", "Egor" },
             { "hobbySystemDeserializer", hobbySystemDeserialized! }
         });
-        
-        Console.WriteLine(json);
     }
     
     [TestMethod]
@@ -73,20 +53,13 @@ public class SafeDictionaryJsonShould
         });
         
         
-        var hobbyNewtonsoftDeserialized = JsonConvert.DeserializeObject(hobbyJson);
+        var hobbyNewtonsoftDeserialized = JsonConvert.DeserializeObject(Hobby.Json);
         
-        var json = serializer.Serialize(new()
+        serializer.Serialize(new()
         {
             { "Name", "Egor" },
             { "hobbySystemDeserializer", hobbyNewtonsoftDeserialized! }
-        });
-        
-        Console.WriteLine(json);
-    }
-
-    public void SerializeReal()
-    {
-        
+        }).Printed();
     }
 
     [TestMethod]
@@ -102,8 +75,8 @@ public class SafeDictionaryJsonShould
         });
         
         
-        var hobbyNewtonsoftDeserialized = JsonConvert.DeserializeObject(hobbyJson);
-        var hobbySystemDeserialized = JsonSerializer.Deserialize<object>(hobbyJson);
+        var hobbyNewtonsoftDeserialized = JsonConvert.DeserializeObject(Hobby.Json);
+        var hobbySystemDeserialized = JsonSerializer.Deserialize<object>(Hobby.Json);
         var hobbyAnonymous = new
         {
             Name = "Board Games",
